@@ -86,12 +86,26 @@ function silhouette(p, hex = p.colors[0].hex) {
   </svg>`;
 }
 
+/* Фото товара поверх силуэта: если картинка не загрузится, останется силуэт */
+function thumb(p, hex, big = false) {
+  const src = big ? p.images?.[0] : (p.thumb || p.images?.[0]);
+  return `<span class="ph">${silhouette(p, hex)}${src ? `<img src="${src}" alt="${esc(p.name)}" loading="lazy" data-fallback>` : ''}</span>`;
+}
+document.addEventListener('error', e => {
+  const t = e.target;
+  if (t.tagName === 'IMG' && t.hasAttribute('data-fallback')) {
+    t.closest('.card__media')?.classList.remove('card__media--photo');
+    t.closest('.viewer')?.classList.add('no-photo');
+    t.remove();
+  }
+}, true);
+
 /* ================= Компоненты ================= */
 function card(p, i = 0) {
   const sale = p.oldPrice ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
   return `<article class="card reveal" style="--d:${(i % 4) * 70}ms">
-    <a href="#/product/${p.slug}" class="card__media" data-tilt>
-      <div class="card__stage">${p.images?.[0] ? `<img src="${p.images[0]}" alt="${esc(p.name)}" loading="lazy">` : silhouette(p)}</div>
+    <a href="#/product/${p.slug}" class="card__media ${p.thumb ? 'card__media--photo' : ''}" data-tilt>
+      <div class="card__stage">${thumb(p)}</div>
       <div class="card__labels">
         ${p.isNew ? '<span class="tag">New</span>' : ''}${sale ? `<span class="tag tag--sale">−${sale}%</span>` : ''}
       </div>
@@ -384,7 +398,11 @@ function viewProduct(slug) {
   app.innerHTML = `
   <section class="product">
     <div class="product__stage">
-      <div class="viewer" id="viewer">
+      <div class="viewer ${p.images?.length ? '' : 'no-photo'}" id="viewer">
+        ${p.images?.length ? `<div class="viewer__photo">${thumb(p, undefined, true)}</div>` : ''}
+        <div class="viewer__mode glass" role="tablist" aria-label="Режим просмотра">
+          <button class="on" data-mode="3d" role="tab">3D · 360°</button><button data-mode="photo" role="tab">Фото</button>
+        </div>
         <div class="viewer__ui">
           <span class="viewer__badge"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg>360°</span>
           <div class="viewer__btns">
@@ -470,6 +488,12 @@ function viewProduct(slug) {
   let auto = true;
   $('#vAuto').onclick = e => { auto = !auto; v.setAutoRotate(auto); e.currentTarget.setAttribute('aria-pressed', auto); e.currentTarget.classList.toggle('off', !auto); };
   $('#vReset').onclick = () => v.resetView();
+  $$('.viewer__mode button').forEach(b => b.onclick = () => {
+    const photo = b.dataset.mode === 'photo';
+    $$('.viewer__mode button').forEach(x => x.classList.toggle('on', x === b));
+    viewerEl.classList.toggle('show-photo', photo);
+    v.setAutoRotate(!photo && auto);
+  });
   $('#vFull').onclick = () => document.fullscreenElement ? document.exitFullscreen() : viewerEl.requestFullscreen?.();
 
   $$('.tabs__nav button').forEach(b => b.onclick = () => {
@@ -516,7 +540,7 @@ function viewCheckout() {
     </form>
     <aside class="summary">
       <p class="eyebrow">Ваш заказ</p>
-      ${cart.map(i => { const p = D.products.find(x => x.id === i.id); return `<div class="summary__row"><div class="summary__img">${silhouette(p, p.colors.find(c => c.name === i.color)?.hex)}</div><div><b>${esc(p.name)}</b><small>${esc(i.color)} · ${i.size} · ${i.qty} шт.</small></div><span>${rub(p.price * i.qty)}</span></div>`; }).join('')}
+      ${cart.map(i => { const p = D.products.find(x => x.id === i.id); return `<div class="summary__row"><div class="summary__img">${thumb(p, p.colors.find(c => c.name === i.color)?.hex)}</div><div><b>${esc(p.name)}</b><small>${esc(i.color)} · ${i.size} · ${i.qty} шт.</small></div><span>${rub(p.price * i.qty)}</span></div>`; }).join('')}
       <div class="summary__total"><span>Итого</span><b>${rub(total)}</b></div>
     </aside>
   </section>`;
@@ -641,7 +665,7 @@ function renderCart() {
   items.innerHTML = cart.map((i, k) => {
     const p = D.products.find(x => x.id === i.id);
     return `<div class="ci">
-      <a href="#/product/${p.slug}" class="ci__img" data-close>${silhouette(p, p.colors.find(c => c.name === i.color)?.hex)}</a>
+      <a href="#/product/${p.slug}" class="ci__img" data-close>${thumb(p, p.colors.find(c => c.name === i.color)?.hex)}</a>
       <div class="ci__body">
         <a href="#/product/${p.slug}" data-close class="ci__name">${esc(p.name)}</a>
         <small>${esc(i.color)} · размер ${i.size}</small>
@@ -769,7 +793,7 @@ function doSearch(q) {
   const norm = s => s.toLowerCase().replace(/ё/g, 'е');
   const res = q ? D.products.filter(p => norm([p.name, p.desc, p.material, catName(p.cat), brandName(p.brand), ...p.colors.map(c => c.name)].join(' ')).includes(q)) : [];
   $('#searchResults').innerHTML = !q ? '' : res.length
-    ? res.map(p => `<a href="#/product/${p.slug}" class="sr-item" data-close><div class="sr-item__img">${silhouette(p)}</div><div><b>${esc(p.name)}</b><small>${catName(p.cat)} · ${brandName(p.brand)}</small></div><span>${rub(p.price)}</span></a>`).join('')
+    ? res.map(p => `<a href="#/product/${p.slug}" class="sr-item" data-close><div class="sr-item__img">${thumb(p)}</div><div><b>${esc(p.name)}</b><small>${catName(p.cat)} · ${brandName(p.brand)}</small></div><span>${rub(p.price)}</span></a>`).join('')
     : `<p class="muted">По запросу «${esc(q)}» ничего не найдено</p>`;
 }
 $('#searchInput').addEventListener('input', e => doSearch(e.target.value));

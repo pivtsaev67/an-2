@@ -4,7 +4,7 @@
 
 Источник: https://an-2.ru/wp-json/wp/v2/product?per_page=100  (сохранить как data/wp-products.json;
 если товаров больше 100 — добавить &page=2 и сохранить как data/wp-products-2.json).
-С параметром &_embed в ответе появляются ссылки на фото — скрипт их подхватит.
+С параметром &_embed (используется сейчас) в ответе есть ссылки на фото — скрипт их подхватывает.
 
 В этом API нет цен и размеров: они заполняются оценочно (см. PRICE_BY_CAT, DEFAULT_SIZES)
 и помечаются полем priceEstimated. Как только появится выгрузка цен — поправить здесь.
@@ -121,10 +121,14 @@ def main():
         if fab == 'wool' and typ in ('dress', 'sundress', 'blouse'):
             fab = fabric_of(material)  # для лёгких вещей подскажет состав
         low = text.lower()
-        images = []
+        images, thumb = [], None
         emb = p.get('_embedded', {}).get('wp:featuredmedia') or []
         for m in emb:
-            if m.get('source_url'): images.append(m['source_url'])
+            if not isinstance(m, dict) or not m.get('source_url'): continue
+            sizes = (m.get('media_details') or {}).get('sizes') or {}
+            pick = lambda *keys: next((sizes[k]['source_url'] for k in keys if k in sizes), m['source_url'])
+            images.append(pick('large', 'woocommerce_single', 'full'))
+            thumb = thumb or pick('medium_large', 'woocommerce_thumbnail', 'shop_catalog', 'medium')
         prod = {
             'id': p['id'], 'slug': p['slug'], 'url': link, 'name': title, 'cat': cat, 'brand': 'an-2',
             'type': typ, 'fabric': fab,
@@ -141,7 +145,7 @@ def main():
         if 'молни' in low: prod['zip'] = True
         if 'пуговиц' in low or 'двуборт' in low or typ == 'jacket': prod['buttons'] = True
         if ('пояс' in low or 'ремень' in low or 'ремн' in low) and typ in ('dress', 'sundress'): prod['belt'] = True
-        if images: prod['images'] = images
+        if images: prod['images'] = images; prod['thumb'] = thumb
         products.append(prod)
     for p in products[:8]:
         p['isNew'] = True
