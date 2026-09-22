@@ -126,7 +126,7 @@ function disposeViewers() { viewers.forEach(v => v.dispose()); viewers = []; }
 
 /* ================= Страницы ================= */
 const featured = D.products.filter(p => p.isNew);
-const demo3d = bySlug('kostyum-tvidovyj') || D.products[0];
+const demo3d = D.products.find(p => p.fabric === 'tweed' && p.type === 'jacket') || D.products[0];
 
 function viewHome() {
   const hero = featured[0];
@@ -228,7 +228,7 @@ function viewHome() {
 
   <section class="section brands">
     ${D.brands.map((b, i) => `
-      <a href="#/catalog?brand=${b.slug}" class="brand reveal ${i ? 'brand--alt' : ''}" data-tilt>
+      <a href="${D.products.some(p => p.brand === b.slug) && D.products.some(p => p.brand !== b.slug) ? `#/catalog?brand=${b.slug}` : "#/catalog"}" class="brand reveal ${i ? 'brand--alt' : ''}" data-tilt>
         <span class="eyebrow">Бренд</span>
         <span class="brand__name">${i ? '<em>Natalia Slavina</em>' : 'AN—2'}</span>
         <span class="brand__desc">${i ? 'Классика высокого качества: благородные ткани, выверенные пропорции, ручная отделка.' : 'Базовый бренд компании: деловой и повседневный гардероб с безупречной посадкой.'}</span>
@@ -298,14 +298,14 @@ function viewCatalog(cat, query) {
       <a href="#/catalog" class="chip ${!cat ? 'on' : ''}">Все</a>
       ${D.categories.map(c => `<a href="#/catalog/${c.slug}" class="chip ${cat === c.slug ? 'on' : ''}">${c.name}</a>`).join('')}
       <a href="#/catalog/new" class="chip ${cat === 'new' ? 'on' : ''}">Новинки</a>
-      <a href="#/catalog/sale" class="chip chip--sale ${cat === 'sale' ? 'on' : ''}">Sale</a>
+      ${D.products.some(p => p.oldPrice) ? `<a href="#/catalog/sale" class="chip chip--sale ${cat === 'sale' ? 'on' : ''}">Sale</a>` : ''}
     </div>
   </section>
   <section class="catalog">
     <aside class="filters" id="filters">
       <div class="filters__head"><span class="eyebrow">Фильтры</span><button class="icon-btn filters__close" id="filtersClose" aria-label="Закрыть">✕</button></div>
       <details open><summary>Бренд</summary>
-        ${D.brands.map(b => `<label class="check"><input type="checkbox" name="brand" value="${b.slug}" ${filters.brand.includes(b.slug) ? 'checked' : ''}><span>${b.name}</span></label>`).join('')}
+        ${D.brands.filter(b => D.products.some(p => p.brand === b.slug)).map(b => `<label class="check"><input type="checkbox" name="brand" value="${b.slug}" ${filters.brand.includes(b.slug) ? 'checked' : ''}><span>${b.name}</span></label>`).join('')}
       </details>
       <details open><summary>Размер</summary>
         <div class="size-grid">${D.sizes.map(s => `<label class="size-pill"><input type="checkbox" name="size" value="${s}" ${filters.size.includes(s) ? 'checked' : ''}><span>${s}</span></label>`).join('')}</div>
@@ -401,7 +401,7 @@ function viewProduct(slug) {
       <p class="card__brand">${brandName(p.brand)}</p>
       <h1 class="product__title">${esc(p.name)}</h1>
       <p class="product__price">${rub(p.price)} ${p.oldPrice ? `<s>${rub(p.oldPrice)}</s><span class="tag tag--sale">−${sale}%</span>` : ''}</p>
-      <p class="product__sku muted">Артикул: AN2-${String(p.id).padStart(4, '0')}</p>
+      <p class="product__sku muted">Артикул: ${p.id}${p.priceEstimated ? ' · ориентировочная цена, точную подтвердит менеджер' : ''}${p.url ? ` · <a href="${p.url}" target="_blank" rel="noopener">на текущем сайте</a>` : ''}</p>
 
       <div class="opt">
         <div class="opt__head"><span>Цвет: <b id="colorName">${esc(p.colors[0].name)}</b></span></div>
@@ -760,7 +760,7 @@ function accountModal() {
 function searchOpen() {
   closeAll();
   $('#search').classList.add('open'); $('#search').setAttribute('aria-hidden', 'false'); document.body.classList.add('lock');
-  $('#searchHints').innerHTML = ['Платье', 'Жакет', 'Шерсть', 'Твид', 'Пальто', 'Шёлк'].map(h => `<button class="chip" data-hint="${h}">${h}</button>`).join('');
+  $('#searchHints').innerHTML = ['Платье', 'Жакет', 'Шифон', 'Замша', 'Вискоза', 'Клетка'].map(h => `<button class="chip" data-hint="${h}">${h}</button>`).join('');
   setTimeout(() => $('#searchInput').focus(), 200);
   doSearch($('#searchInput').value);
 }
@@ -874,10 +874,11 @@ $('#accountOpen').onclick = accountModal;
 $('#burger').onclick = () => openDrawer('menu');
 $('#subscribeForm').onsubmit = e => { e.preventDefault(); toast('Спасибо! Вы подписаны на новости'); e.target.reset(); };
 
-$('#menuList').innerHTML = [['Каталог', '#/catalog'], ...D.categories.map(c => [c.name, '#/catalog/' + c.slug]), ['Новинки', '#/catalog/new'], ['Sale', '#/catalog/sale'], ['О компании', '#/about'], ['Как купить', '#/how-to-buy'], ['Контакты', '#/contacts'], ['Избранное', '#/favorites']]
+$('#menuList').innerHTML = [['Каталог', '#/catalog'], ...D.categories.map(c => [c.name, '#/catalog/' + c.slug]), ['Новинки', '#/catalog/new'], ...(D.products.some(p => p.oldPrice) ? [['Sale', '#/catalog/sale']] : []), ['О компании', '#/about'], ['Как купить', '#/how-to-buy'], ['Контакты', '#/contacts'], ['Избранное', '#/favorites']]
   .map(([t, h], i) => `<a href="${h}" data-close style="--i:${i}">${t}</a>`).join('');
 $('#footerCats').innerHTML = D.categories.map(c => `<li><a href="#/catalog/${c.slug}">${c.name}</a></li>`).join('');
 $('#year').textContent = new Date().getFullYear();
+if (!D.products.some(p => p.oldPrice)) $$('.nav__sale').forEach(a => a.remove());
 
 /* ================= Роутер ================= */
 function plural(n, [one, few, many]) {

@@ -125,6 +125,31 @@ const fabricDraw = {
       ctx.fillStyle = '#3a3a3a'; ctx.beginPath(); ctx.arc(x + st / 2, y + st / 2, st * .08, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#e8d9b0';
     }
   },
+  check(ctx, s) { // клетка: пересекающиеся полосы
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, s, s);
+    const band = (x, w, a) => { ctx.fillStyle = `rgba(40,40,40,${a})`; ctx.fillRect(x, 0, w, s); ctx.fillRect(0, x, s, w); };
+    band(0, 64, .45); band(128, 64, .45); band(88, 8, .6); band(216, 8, .6); band(40, 3, .35); band(168, 3, .35);
+  },
+  dots(ctx, s) { // горошек
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = '#1c1c1c';
+    const st = s / 4;
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) {
+      ctx.beginPath(); ctx.arc(i * st + (j % 2 ? st / 2 : 0) + st / 4, j * st + st / 2, st * .16, 0, Math.PI * 2); ctx.fill();
+    }
+  },
+  print(ctx, s) { // растительный / абстрактный принт
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, s, s);
+    const tones = ['rgba(255,235,240,.9)', 'rgba(90,70,80,.55)', 'rgba(200,170,120,.7)', 'rgba(60,90,70,.5)'];
+    for (let i = 0; i < 38; i++) {
+      const x = rnd(0, s), y = rnd(0, s), r = rnd(6, 20), a = rnd(0, Math.PI);
+      ctx.fillStyle = tones[i % tones.length];
+      for (let k = 0; k < 5; k++) { // цветок из лепестков
+        const b = a + k * Math.PI * 2 / 5;
+        ctx.beginPath(); ctx.ellipse(x + Math.cos(b) * r * .6, y + Math.sin(b) * r * .6, r * .55, r * .25, b, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+  },
   crepe(ctx, s) {
     ctx.fillStyle = '#e6e6e6'; ctx.fillRect(0, 0, s, s);
     for (let i = 0; i < 14000; i++) {
@@ -153,9 +178,9 @@ const fabricDraw = {
 };
 
 function fabricMaterial(fabric, hex) {
-  const f = fabricDraw[fabric] ? fabric : 'wool';
-  const rep = f === 'lace' ? [8, 6] : f === 'tweed' ? [6, 6] : f === 'stripe' ? [10, 1] : f === 'geo' ? [5, 4] : [14, 12];
-  const tex = canvasTex(f, fabricDraw[f], rep);
+  const f = fabricDraw[fabric] || fabric === 'leather' ? fabric : 'wool';
+  const rep = f === 'lace' ? [8, 6] : f === 'tweed' ? [6, 6] : f === 'stripe' ? [10, 1] : f === 'geo' ? [5, 4] : f === 'check' ? [4, 3] : f === 'dots' ? [6, 5] : f === 'print' ? [3, 3] : [14, 12];
+  const tex = canvasTex(f, fabricDraw[f] || fabricDraw.silk, rep);
   tex.colorSpace = THREE.SRGBColorSpace;
   const base = {
     color: new THREE.Color(hex), side: THREE.DoubleSide,
@@ -170,6 +195,10 @@ function fabricMaterial(fabric, hex) {
     suede: { map: tex, bumpMap: tex, bumpScale: .6, roughness: .9, sheen: 1, sheenRoughness: .95 },
     crepe: { map: tex, bumpMap: tex, bumpScale: .9, roughness: .8 },
     stripe: { map: tex, roughness: .6, sheen: .5 },
+    check: { map: tex, roughness: .8 },
+    dots: { map: tex, roughness: .6, sheen: .6 },
+    print: { map: tex, roughness: .55, sheen: .7, sheenRoughness: .5 },
+    leather: { roughness: .32, sheen: 0, clearcoat: .6, clearcoatRoughness: .35 },
     geo: { map: tex, roughness: .5, sheen: .7, sheenRoughness: .4 },
     lace: { alphaMap: tex, alphaTest: .5, roughness: .7, sheen: .8 }
   };
@@ -236,6 +265,7 @@ function buildGarment(product, hex, mats) {
       break;
   }
 
+  if (sleeve && product.sleeve) sleeve.len = product.sleeve; // длина рукава из описания товара
   if (hasTop) {
     const profile = [...lower, ...(type === 'sundress' ? P.topOpen : P.top)]
       .map(([r, y], i, arr) => [r * (y > 1.3 ? topScale : topScale * .985), y]);
