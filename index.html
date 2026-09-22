@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AN-2 — дизайнерская женская одежда</title>
+  <meta name="description" content="AN-2 — производитель женской одежды класса pret-a-porter. Жакеты, платья, костюмы, пальто брендов AN-2 и Natalia Slavina. Москва.">
+  <meta name="theme-color" content="#0e0d0c">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/build/three.module.min.js",
+      "three/addons/": "./vendor/three/addons/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true"><span></span></div>
+
+  <!-- Верхняя строка -->
+  <div class="topbar">
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>Новая коллекция осень — зима</span><span>Собственное производство в Москве более 25 лет</span><span>Доставка по России</span><span>Примерка в шоуруме</span>
+        <span>Новая коллекция осень — зима</span><span>Собственное производство в Москве более 25 лет</span><span>Доставка по России</span><span>Примерка в шоуруме</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Шапка -->
+  <header class="header" id="header">
+    <button class="icon-btn burger" id="burger" aria-label="Меню"><span></span><span></span></button>
+    <nav class="nav nav--left" aria-label="Каталог">
+      <a href="#/catalog" data-link>Каталог</a>
+      <a href="#/catalog/platya" data-link>Платья</a>
+      <a href="#/catalog/zhakety" data-link>Жакеты</a>
+      <a href="#/catalog/kostyumy" data-link>Костюмы</a>
+      <a href="#/catalog/sale" data-link class="nav__sale">Sale</a>
+    </nav>
+    <a href="#/" class="logo" data-link aria-label="AN-2 — на главную">
+      <span class="logo__mark">AN</span><span class="logo__dash">—</span><span class="logo__mark">2</span>
+    </a>
+    <nav class="nav nav--right" aria-label="Сервис">
+      <a href="#/about" data-link>О компании</a>
+      <a href="#/how-to-buy" data-link>Как купить</a>
+      <a href="#/contacts" data-link>Контакты</a>
+    </nav>
+    <div class="header__tools">
+      <button class="icon-btn" id="searchOpen" aria-label="Поиск">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      </button>
+      <button class="icon-btn" id="accountOpen" aria-label="Личный кабинет">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
+      </button>
+      <a class="icon-btn" href="#/favorites" data-link aria-label="Избранное">
+        <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+        <b class="badge" id="favCount">0</b>
+      </a>
+      <button class="icon-btn" id="cartOpen" aria-label="Корзина">
+        <svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <b class="badge" id="cartCount">0</b>
+      </button>
+    </div>
+  </header>
+
+  <!-- Мобильное меню -->
+  <aside class="drawer drawer--left" id="menu" aria-hidden="true">
+    <div class="drawer__head"><span class="eyebrow">Меню</span><button class="icon-btn" data-close aria-label="Закрыть">✕</button></div>
+    <nav class="menu-list" id="menuList"></nav>
+    <div class="drawer__foot">
+      <a href="tel:+74959663441" class="menu-phone">+7 (495) 966-34-41</a>
+      <p class="muted">Пн–Пт, 10:00–18:00</p>
+    </div>
+  </aside>
+
+  <main id="app" tabindex="-1"></main>
+
+  <!-- Подвал -->
+  <footer class="footer">
+    <div class="footer__big" aria-hidden="true">AN—2</div>
+    <div class="footer__grid">
+      <div>
+        <p class="eyebrow">Подписка</p>
+        <h3 class="footer__title">Узнавайте о новых коллекциях первыми</h3>
+        <form class="subscribe" id="subscribeForm">
+          <input type="email" required placeholder="Ваш e-mail" aria-label="E-mail">
+          <button class="btn btn--light" type="submit">Подписаться</button>
+        </form>
+      </div>
+      <div>
+        <p class="eyebrow">Каталог</p>
+        <ul class="footer__list" id="footerCats"></ul>
+      </div>
+      <div>
+        <p class="eyebrow">Покупателям</p>
+        <ul class="footer__list">
+          <li><a href="#/how-to-buy" data-link>Как купить</a></li>
+          <li><a href="#/how-to-buy" data-link>Доставка и оплата</a></li>
+          <li><a href="#" data-sizes>Таблица размеров</a></li>
+          <li><a href="#/favorites" data-link>Избранное</a></li>
+          <li><a href="#/about" data-link>О компании</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="eyebrow">Контакты</p>
+        <ul class="footer__list">
+          <li><a href="tel:+74959663441">+7 (495) 966-34-41</a></li>
+          <li><a href="mailto:shop@an-2.ru">shop@an-2.ru</a></li>
+          <li>Москва, Андроновское шоссе</li>
+          <li class="muted">Пн–Пт, 10:00–18:00</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© <span id="year"></span> ООО «Фирма «АН-2». Все права защищены.</span>
+      <span>AN-2 · Natalia Slavina</span>
+    </div>
+  </footer>
+
+  <!-- Корзина -->
+  <aside class="drawer drawer--right" id="cart" aria-hidden="true">
+    <div class="drawer__head"><span class="eyebrow">Корзина</span><button class="icon-btn" data-close aria-label="Закрыть">✕</button></div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="drawer__foot" id="cartFoot"></div>
+  </aside>
+
+  <!-- Поиск -->
+  <div class="search" id="search" aria-hidden="true">
+    <div class="search__inner">
+      <div class="search__bar">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input id="searchInput" type="search" placeholder="Платье, жакет, шерсть…" autocomplete="off" aria-label="Поиск по каталогу">
+        <button class="icon-btn" data-close aria-label="Закрыть">✕</button>
+      </div>
+      <div class="search__hints" id="searchHints"></div>
+      <div class="search__results" id="searchResults"></div>
+    </div>
+  </div>
+
+  <!-- Модальное окно -->
+  <div class="modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__box">
+      <button class="icon-btn modal__close" data-close aria-label="Закрыть">✕</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="js/data.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
