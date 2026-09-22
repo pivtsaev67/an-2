@@ -126,13 +126,14 @@ function disposeViewers() { viewers.forEach(v => v.dispose()); viewers = []; }
 
 /* ================= Страницы ================= */
 const featured = D.products.filter(p => p.isNew);
+const demo3d = bySlug('kostyum-tvidovyj') || D.products[0];
 
 function viewHome() {
   const hero = featured[0];
   app.innerHTML = `
   <section class="hero">
     <div class="hero__text">
-      <p class="eyebrow reveal">Pret-a-porter · Москва · с 1998</p>
+      <p class="eyebrow reveal">Pret-a-porter · собственное производство в Москве</p>
       <h1 class="hero__title">
         <span class="line"><span>Искусство</span></span>
         <span class="line"><span><em>безупречного</em></span></span>
@@ -203,7 +204,7 @@ function viewHome() {
         <li>Смена цвета в реальном времени</li>
         <li>Фактура ткани: шерсть, твид, шёлк, кружево, замша</li>
       </ul>
-      <a href="#/product/${D.products[5].slug}" class="btn btn--light reveal" data-magnetic>Попробовать</a>
+      <a href="#/product/${demo3d.slug}" class="btn btn--light reveal" data-magnetic>Попробовать</a>
     </div>
     <div class="feature3d__stage" id="featureViewer"></div>
   </section>
@@ -260,7 +261,7 @@ function viewHome() {
   $('#heroNext').onclick = () => { idx = (idx + 1) % featured.length; color = 0; upd(); };
 
   // Блок 3D-примерочной — ленивая инициализация
-  lazy($('#featureViewer'), el => mountViewer(el, D.products[5], { autoRotate: true }));
+  lazy($('#featureViewer'), el => mountViewer(el, demo3d, { autoRotate: true }));
 
   $$('[data-rail]').forEach(b => b.onclick = () => $('#rail').scrollBy({ left: +b.dataset.rail * $('#rail').clientWidth * .8, behavior: 'smooth' }));
 }
@@ -273,7 +274,7 @@ function howToBuySteps() {
         ['Выберите модель', 'Рассмотрите вещь в 3D, выберите цвет и размер. Не уверены в размере — загляните в таблицу размеров.'],
         ['Оформите заказ', 'Добавьте товар в корзину и отправьте заказ. Либо позвоните по телефону +7 (495) 966-34-41 или напишите на shop@an-2.ru.'],
         ['Подтверждение', 'Менеджер свяжется с вами, уточнит детали, наличие и согласует удобный способ доставки.'],
-        ['Получение', 'Доставка курьером по Москве, транспортными компаниями и почтой по России. Оплата при получении или онлайн.']
+        ['Получение', `Доставка ${D.shop.delivery}: курьером по Москве, транспортными компаниями и почтой по России. Возврат — ${D.shop.returnDays} дней.`]
       ].map(([t, d], i) => `<li class="step reveal" style="--d:${i * 80}ms"><span class="step__n">0${i + 1}</span><h3>${t}</h3><p>${d}</p></li>`).join('')}
     </ol>
   </section>`;
@@ -417,7 +418,7 @@ function viewProduct(slug) {
       </div>
       <button class="btn btn--ghost btn--block" id="oneClick">Купить в 1 клик</button>
       <ul class="perks">
-        <li>Доставка по Москве и России</li><li>Примерка в шоуруме</li><li>Консультация стилиста: <a href="tel:${D.shop.phoneRaw}">${D.shop.phone}</a></li>
+        <li>Доставка ${D.shop.delivery} по Москве и России</li><li>Возврат в течение ${D.shop.returnDays} дней</li><li>Примерка в шоуруме</li><li>Консультация стилиста: <a href="tel:${D.shop.phoneRaw}">${D.shop.phone}</a></li>
       </ul>
       <div class="tabs">
         <div class="tabs__nav" role="tablist">
@@ -426,7 +427,7 @@ function viewProduct(slug) {
         <div class="tabs__body">
           <div class="tab on"><p>${esc(p.desc)}</p></div>
           <div class="tab"><p>${esc(p.material)}</p><p class="muted">Деликатная химчистка. Гладить с изнаночной стороны через влажную ткань. Хранить на плечиках.</p></div>
-          <div class="tab"><p>Курьером по Москве — 1–2 дня. По России — транспортными компаниями и Почтой России. Стоимость и сроки уточнит менеджер при подтверждении заказа.</p></div>
+          <div class="tab"><p>Доставка занимает ${D.shop.delivery}. По Москве — курьером, по России — транспортными компаниями и Почтой России. Если вещь не подошла — вернуть можно в течение ${D.shop.returnDays} дней.</p></div>
         </div>
       </div>
     </div>
@@ -497,7 +498,7 @@ function viewCheckout() {
       </fieldset>
       <fieldset><legend>Доставка</legend>
         <div class="radios">
-          <label class="radio"><input type="radio" name="delivery" value="Курьер по Москве" checked><span><b>Курьер по Москве</b><small>1–2 дня</small></span></label>
+          <label class="radio"><input type="radio" name="delivery" value="Курьер по Москве" checked><span><b>Курьер по Москве</b><small>${D.shop.delivery}</small></span></label>
           <label class="radio"><input type="radio" name="delivery" value="Транспортная компания"><span><b>Транспортная компания</b><small>по России</small></span></label>
           <label class="radio"><input type="radio" name="delivery" value="Самовывоз из шоурума"><span><b>Самовывоз</b><small>Андроновское шоссе</small></span></label>
         </div>
@@ -567,7 +568,7 @@ function viewAbout() {
       <p>Коллекции представлены в фирменных магазинах, в интернет-магазине и у партнёров по всей России.</p>
     </div>
     <div class="timeline reveal">
-      ${[['1998', 'Основание компании и первые коллекции жакетов'], ['2005', 'Собственное швейное производство в Москве'], ['2012', 'Запуск бренда Natalia Slavina'], ['2020', 'Интернет-магазин и доставка по России'], ['Сегодня', '3D-примерочная: каждую модель можно рассмотреть на 360°']]
+      ${[['Эскиз', 'Дизайнеры компании сами разрабатывают каждую модель'], ['Лекала', 'Конструкторы строят лекала под российскую фигуру, размеры 42–56'], ['Ткани', 'Подбираем качественные ткани: шерсть, твид, шёлк, вискозу, кружево'], ['Пошив', 'Отшиваем на собственном производстве в Москве'], ['Контроль', 'Проверяем посадку и качество каждой вещи перед продажей']]
         .map(([y, t]) => `<div class="timeline__item"><b>${y}</b><span>${t}</span></div>`).join('')}
     </div>
   </section>
@@ -588,7 +589,7 @@ function viewHowToBuy() {
       ['Как выбрать размер?', 'Воспользуйтесь таблицей размеров. Если сомневаетесь между двумя размерами — позвоните нам, менеджер подскажет по конкретной модели.'],
       ['Какие способы доставки?', 'Курьером по Москве, транспортными компаниями и Почтой России по всей стране, самовывоз из шоурума.'],
       ['Как оплатить?', 'Наличными или картой при получении, либо онлайн после подтверждения заказа менеджером.'],
-      ['Можно ли вернуть товар?', 'Да, в соответствии с законом «О защите прав потребителей» при сохранении товарного вида и ярлыков.'],
+      ['Можно ли вернуть товар?', `Да, в течение ${D.shop.returnDays} дней, если вещь не подошла. Сохраните товарный вид и ярлыки.`],
       ['Когда со мной свяжутся?', `В рабочее время: ${D.shop.hours}. Заказы, оформленные в выходные, обрабатываются в понедельник.`]
     ].map(([q, a]) => `<details class="faq__item"><summary>${q}</summary><p>${a}</p></details>`).join('')}
     <button class="btn btn--ghost" data-sizes>Открыть таблицу размеров</button>
@@ -600,7 +601,7 @@ function viewContacts() {
   <section class="page-head">${crumbs([['Контакты']])}<h1 class="h1">Контакты</h1></section>
   <section class="section section--tight contacts">
     <div class="contacts__cards">
-      <a class="contact reveal" href="tel:${D.shop.phoneRaw}"><span class="eyebrow">Телефон</span><b>${D.shop.phone}</b><small>${D.shop.hours}</small></a>
+      <div class="contact reveal"><span class="eyebrow">Телефоны</span><b><a href="tel:${D.shop.phoneRaw}">${D.shop.phone}</a></b><b><a href="tel:${D.shop.phone2Raw}">${D.shop.phone2}</a></b><small>${D.shop.hours}</small></div>
       <a class="contact reveal" href="mailto:${D.shop.email}"><span class="eyebrow">E-mail</span><b>${D.shop.email}</b><small>Ответим в течение рабочего дня</small></a>
       <div class="contact reveal"><span class="eyebrow">Адрес</span><b>${D.shop.address}</b><small>Шоурум и офис</small></div>
     </div>

@@ -110,6 +110,21 @@ const fabricDraw = {
     }
   },
   suede(ctx, s) { fabricDraw.felt(ctx, s); },
+  stripe(ctx, s) { // вертикальная полоска: светлая по основному цвету
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = '#2a2a2a';
+    for (let x = 0; x < s; x += 32) ctx.fillRect(x, 0, 14, s);
+  },
+  geo(ctx, s) { // геометрический принт: ромбы и точки
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = '#e8d9b0';
+    const st = s / 4;
+    for (let i = 0; i <= 4; i++) for (let j = 0; j <= 4; j++) {
+      const x = i * st, y = j * st;
+      ctx.beginPath(); ctx.moveTo(x, y - st * .32); ctx.lineTo(x + st * .32, y); ctx.lineTo(x, y + st * .32); ctx.lineTo(x - st * .32, y); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#3a3a3a'; ctx.beginPath(); ctx.arc(x + st / 2, y + st / 2, st * .08, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#e8d9b0';
+    }
+  },
   crepe(ctx, s) {
     ctx.fillStyle = '#e6e6e6'; ctx.fillRect(0, 0, s, s);
     for (let i = 0; i < 14000; i++) {
@@ -139,7 +154,7 @@ const fabricDraw = {
 
 function fabricMaterial(fabric, hex) {
   const f = fabricDraw[fabric] ? fabric : 'wool';
-  const rep = f === 'lace' ? [8, 6] : f === 'tweed' ? [6, 6] : [14, 12];
+  const rep = f === 'lace' ? [8, 6] : f === 'tweed' ? [6, 6] : f === 'stripe' ? [10, 1] : f === 'geo' ? [5, 4] : [14, 12];
   const tex = canvasTex(f, fabricDraw[f], rep);
   tex.colorSpace = THREE.SRGBColorSpace;
   const base = {
@@ -154,6 +169,8 @@ function fabricMaterial(fabric, hex) {
     felt: { map: tex, bumpMap: tex, bumpScale: .8, roughness: 1, sheen: .4 },
     suede: { map: tex, bumpMap: tex, bumpScale: .6, roughness: .9, sheen: 1, sheenRoughness: .95 },
     crepe: { map: tex, bumpMap: tex, bumpScale: .9, roughness: .8 },
+    stripe: { map: tex, roughness: .6, sheen: .5 },
+    geo: { map: tex, roughness: .5, sheen: .7, sheenRoughness: .4 },
     lace: { alphaMap: tex, alphaTest: .5, roughness: .7, sheen: .8 }
   };
   return new THREE.MeshPhysicalMaterial({ ...base, ...byFabric[f] });
